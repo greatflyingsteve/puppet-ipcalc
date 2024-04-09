@@ -94,3 +94,11 @@ such subnet in the given IP/CIDR
 
 ip_supernet returns the IP/CIDR of size `$supernet_prefixlength` which contains
 `$cidr`
+
+### `ip_range_size($cidr_1, $cidr_2)`
+
+ip_range_size takes a starting IP/CIDR and an ending IP/CIDR, and returns the
+number of contiguious addresses between them, inclusive of the starting and
+ending addresses.  Network size, network or broadcast addresses are NOT taken
+into account, only the number of addresses of any type between start and end of
+the range.
