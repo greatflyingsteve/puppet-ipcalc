@@ -102,3 +102,65 @@ number of contiguious addresses between them, inclusive of the starting and
 ending addresses.  Network size, network or broadcast addresses are NOT taken
 into account, only the number of addresses of any type between start and end of
 the range.
+
+## Comparison Functions
+
+The following functions are designed for use in comparing IP/CIDRs.  Unlike the
+functions documented above, these are namespaced in this module and implemented
+in the v4 API.
+
+### `ipcalc::ip_compare($left_cidr, $right_cidr)`
+
+ipcalc::ip_compare is designed to be used with Puppet's built-in `sort()`
+function.  It takes two IP/CIDRs, and returns:
+- `-1` if the left IP/CIDR is smaller than the right
+- `0` if the left and right IP/CIDRs are equal
+- `1` if the left IP/CIDR is greater than the right
+
+When used in the optional block that can be passed to `sort()` (see examples in
+the function's documentation), this allows `sort()` to sort an Array of IP
+addresses into native order instead of string order - i.e., `1.1.1.2` will sort
+lower than `1.1.1.10`, where string sorting would instead compare the first
+seven characters, see `1.1.1.2` as greater than `1.1.1.1`, and sort them into
+the wrong order.
+
+### `ipcalc::greater_than($left_cidr, $right_cidr)`
+
+Return `true` if the left IP/CIDR is greater than the right.  This makes the
+most sense when using Puppet's dotted function notation:
+```
+$left_ip.ipcalc::greater_than($right_ip)
+```
+
+### `ipcalc::equal_or_greater_than($left_cidr, $right_cidr)`
+
+Return `true` if the left IP/CIDR is equal-to-or-greater-than the right.  This
+makes the most sense when using Puppet's dotted function notation:
+```
+$left_ip.ipcalc::equal_or_greater_than($right_ip)
+```
+
+### `ipcalc::equal_to($left_cidr, $right_cidr)`
+
+Return `true` if the left and right IP/CIDRs are equal.  This makes the most
+sense when using Puppet's dotted function notation:
+```
+$left_ip.ipcalc::less_than($right_ip)
+```
+
+### `ipcalc::equal_or_less_than($left_cidr, $right_cidr)`
+
+Return `true` if the left IP/CIDR is equal-to-or-less-than the right.  This
+makes the most sense when using Puppet's dotted function notation:
+```
+$left_ip.ipcalc::equal_or_less_than($right_ip)
+```
+
+### `ipcalc::less_than($left_cidr, $right_cidr)`
+
+Return `true` if the left IP/CIDR is less than the right.  This makes the most
+sense when using Puppet's dotted function notation:
+```
+$left_ip.ipcalc::less_than($right_ip)
+```
+
