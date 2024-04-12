@@ -22,29 +22,14 @@ Puppet::Functions.create_function(:"ipcalc::ip_compare") do
   #     ipcalc::ip_compare($left, $right)
   #   }
   dispatch :ip_compare do
-    param 'Stdlib::IP::Address::V4::Nosubnet', :left
-    param 'Stdlib::IP::Address::V4::Nosubnet', :right
+    param 'Stdlib::IP::Address::V4', :left
+    param 'Stdlib::IP::Address::V4', :right
     return_type 'Integer[-1, 1]'
   end
 
   dispatch :ip_compare do
-    param 'Stdlib::IP::Address::V6::Nosubnet', :left
-    param 'Stdlib::IP::Address::V6::Nosubnet', :right
-    return_type 'Integer[-1, 1]'
-  end
-
-  # If we're passed a CIDR address with an attached netmask, normalize this so we compare all bits
-  # of the address portion.  We need to handle mask length comparison separately, and only if the
-  # address bits are identical.
-  dispatch :normalize_netaddrs do
-    param 'Stdlib::IP::Address::V4::CIDR', :left
-    param 'Stdlib::IP::Address::V4::CIDR', :right
-    return_type 'Integer[-1, 1]'
-  end
-
-  dispatch :normalize_netaddrs do
-    param 'Stdlib::IP::Address::V6::CIDR', :left
-    param 'Stdlib::IP::Address::V6::CIDR', :right
+    param 'Stdlib::IP::Address::V6', :left
+    param 'Stdlib::IP::Address::V6', :right
     return_type 'Integer[-1, 1]'
   end
 
@@ -71,16 +56,21 @@ Puppet::Functions.create_function(:"ipcalc::ip_compare") do
     param 'Stdlib::IP::Address::V4', :right
   end
 
-  def normalize_netaddrs(left, right)
-    left_netaddr = IPAddr.new(left)
-    right_netaddr = IPAddr.new(right)
-
-    ip_compare(left.split('/')[0], right.split('/')[0], left_netaddr, right_netaddr)
+  def normalize_addr(addr)
+    # When initializing a new IPAddr, if a prefix length is given, the returned IPAddr will be the 
+    # base network address and the subnet mask for that network, not the address that was passed 
+    # in.  If we want to compare the full address, we need to separate the prefix and initialize a 
+    # new IPAddr with the address alone, and then separately create an IPAddr instance to represent 
+    # the network address.
+    (address, prefix) = addr.split('/')
+    ip_address = IPAddr.new(address)
+    network_address = prefix ? IPAddr.new(addr) : ip_address
+    [ip_address, network_address]
   end
 
-  def ip_compare(left, right, left_netaddr = IPAddr.new(left), right_netaddr = IPAddr.new(right))
-    left_addr = IPAddr.new(left)
-    right_addr = IPAddr.new(right)
+  def ip_compare(left, right)
+    (left_addr, left_netaddr) = normalize_addr(left)
+    (right_addr, right_netaddr) = normalize_addr(right)
 
     if left_addr == right_addr
       left_netaddr.prefix <=> right_netaddr.prefix
